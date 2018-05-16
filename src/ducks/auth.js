@@ -1,6 +1,7 @@
 import { appName } from '../config';
 import { Record } from 'immutable';
 import firebase from 'firebase';
+import { createSelector } from 'reselect';
 
 export const moduleName = 'auth';
 const prefix = `${appName}/${moduleName}`;
@@ -25,7 +26,8 @@ export default function reducer(state = new ReducerRecord(), action) {
     };
 };
 
-const userSelector = state => state[appName].user;
+export const userSelector = state => state[moduleName].user;
+export const authorizedSelector = createSelector(userSelector, user => !!user);
 
 export function signUp(email, password) {
     return (dispatch) => {
@@ -40,3 +42,10 @@ export function signIn(email, password) {
             .then(user => dispatch({ type: SIGN_IN_SUCCESS, payload: { user }}));
     };
 };
+
+firebase.auth().onAuthStateChanged(user => {
+    window.store.dispatch({
+        type: SIGN_IN_SUCCESS,
+        payload: { user }
+    })
+});
